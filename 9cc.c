@@ -2,6 +2,23 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+// トークンの種類
+typedef enum {
+    TK_RESERVED, // 記号
+    TK_NUM, // 整数トークン
+    TK_EOF, // 入力の終わりを表すトークン
+} Tokenkind;
+
+typedef struct Token Token;
+
+// トークン型
+struct Token {
+    Tokenkind kind; // トークンの型
+    Token *next; // 次の入力トークン（連結リスト構造）
+    int val; // kindがTK_NUMの場合、その数値
+    char *str; // トークン文字列
+};
+
 void error(char *fmt, ...) { // 可変長引数
     va_list ap;
     va_start(ap, fmt); // ポインタapを、引数fmtの次の位置にする
