@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,13 +28,42 @@ void error(char *fmt, ...) { // 可変長引数
     exit(1);
 }
 
+// 新しいトークンを作成してcurに繋げる
+Token *new_token(Tokenkind kind, Token *cur, char *str) {
+    Token *tok = calloc(1, sizeof(Token)); // なんでcallocを使うのだろう？？
+    tok->kind = kind;
+    tok->str = str;
+    cur->next = tok;
+    return tok;
+}
+
+// 入力文字列pをトークナイズしてそれを返す
+Token *tokenize(char *p) {
+    Token head; // 最初にダミーの要素を作り、そこから連結リストを作る
+    head.next = NULL;
+    Token *cur = &head;
+
+    while (*p) { // 文字列が終わるまで（文字列の最後はヌル文字が入りwhile文が終了する）
+        // 空白文字をスキップ
+        if (isspace(*p)) {
+            p++;
+            continue;
+        }
+
+        if (*p == '+' || *p == '-') {
+
+        }
+    }
+}
+
 int main(int argc, char **argv) {
     if (argc != 2) {
         error("引数の個数が正しくありません");
         return 1;
     }
 
-    char *p = argv[1]; // 引数の文字列の先頭ポインタ
+    // トークナイズする
+    token = tokenize(argv[1]);
 
     printf(".intel_syntax noprefix\n");
     printf(".global main\n");
