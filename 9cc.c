@@ -1,13 +1,18 @@
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 void error(char *fmt, ...) { // 可変長引数
-
+    va_list ap;
+    va_start(ap, fmt); // ポインタapを、引数fmtの次の位置にする
+    vfprintf(stderr, fmt, ap); // 標準エラー出力へ出す
+    fprintf(stderr, "\n");
+    exit(1);
 }
 
 int main(int argc, char **argv) {
     if (argc != 2) {
-        fprintf(stderr, "引数の個数が正しくありません\n");
+        error("引数の個数が正しくありません");
         return 1;
     }
 
