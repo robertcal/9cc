@@ -30,7 +30,7 @@ void error(char *fmt, ...) { // 可変長引数
 
 // 新しいトークンを作成してcurに繋げる
 Token *new_token(Tokenkind kind, Token *cur, char *str) {
-    Token *tok = calloc(1, sizeof(Token)); // なんでcallocを使うのだろう？？
+    Token *tok = calloc(1, sizeof(Token)); // 連結リストはどこまで増えるか分からないため、動的にメモリを確保する必要がある
     tok->kind = kind;
     tok->str = str;
     cur->next = tok;
