@@ -20,6 +20,9 @@ struct Token {
     char *str; // トークン文字列
 };
 
+// 現在着目しているトークン
+Token *token;
+
 void error(char *fmt, ...) { // 可変長引数
     va_list ap;
     va_start(ap, fmt); // ポインタapを、引数fmtの次の位置にする
@@ -75,11 +78,13 @@ int main(int argc, char **argv) {
     }
 
     // トークナイズする
-    token = tokenize(argv[1]);
+    token = tokenize(argv[1]); // tokenはグローバル変数に設定
 
+    // アセンブリの前半部分を出力
     printf(".intel_syntax noprefix\n");
     printf(".global main\n");
     printf("main:\n");
+
     printf("  mov rax, %ld\n", strtol(p, &p, 10)); // 10進数でポインタから数値に変換できるところを変換して、ポインタを進める
 
     while (*p) { // 文字列が終わるまで（文字列の最後はヌル文字が入りwhile文が終了する）
