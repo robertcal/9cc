@@ -31,6 +31,18 @@ void error(char *fmt, ...) { // 可変長引数
     exit(1);
 }
 
+// 次のトークンが数値の場合、トークンを1つ読み進めてその数値を返す
+// それ以外の場合にはエラーを報告する
+int expect_number() {
+    if (token->kind != TK_NUM) {
+        error("数ではありません");
+    }
+
+    int val = token->val;
+    token = token->next;
+    return val;
+}
+
 // 新しいトークンを作成してcurに繋げる
 Token *new_token(Tokenkind kind, Token *cur, char *str) {
     Token *tok = calloc(1, sizeof(Token)); // 連結リストはどこまで増えるか分からないため、動的にメモリを確保する必要がある
@@ -85,7 +97,8 @@ int main(int argc, char **argv) {
     printf(".global main\n");
     printf("main:\n");
 
-    printf("  mov rax, %ld\n", strtol(p, &p, 10)); // 10進数でポインタから数値に変換できるところを変換して、ポインタを進める
+    // 式の最初は数でなければならないので、それをチェックして最初のmov命令を出力
+    printf("  mov rax, %d\n", expect_number());
 
     while (*p) { // 文字列が終わるまで（文字列の最後はヌル文字が入りwhile文が終了する）
         if (*p == '+') {
