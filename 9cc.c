@@ -39,7 +39,7 @@ Token *new_token(Tokenkind kind, Token *cur, char *str) {
 
 // 入力文字列pをトークナイズしてそれを返す
 Token *tokenize(char *p) {
-    Token head; // 最初にダミーの要素を作り、そこから連結リストを作る
+    Token head; // 最初にダミーの要素を作り、そこから連結リストを作る（head自身はreturnしないためローカル変数で良い）
     head.next = NULL;
     Token *cur = &head;
 
@@ -51,9 +51,21 @@ Token *tokenize(char *p) {
         }
 
         if (*p == '+' || *p == '-') {
-
+            cur = new_token(TK_RESERVED, cur, p++); // new_tokenを実行した後に、p++でポインタを進める
+            continue;
         }
+
+        if (isdigit(*p)) {
+            cur = new_token(TK_NUM, cur, p);
+            cur->val = strtol(p, &p, 10); // 10進数でポインタから数値に変換できるところを変換して、ポインタを進める
+            continue;
+        }
+
+        error("トークナイズできません");
     }
+
+    new_token(TK_EOF, cur, p);
+    return head.next;
 }
 
 int main(int argc, char **argv) {
