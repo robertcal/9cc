@@ -1,5 +1,6 @@
 #include <ctype.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -8,13 +9,13 @@ typedef enum {
     TK_RESERVED, // 記号
     TK_NUM, // 整数トークン
     TK_EOF, // 入力の終わりを表すトークン
-} Tokenkind;
+} TokenKind;
 
 typedef struct Token Token;
 
 // トークン型
 struct Token {
-    Tokenkind kind; // トークンの型
+    TokenKind kind; // トークンの型
     Token *next; // 次の入力トークン（連結リスト構造）
     int val; // kindがTK_NUMの場合、その数値
     char *str; // トークン文字列
@@ -31,6 +32,26 @@ void error(char *fmt, ...) { // 可変長引数
     exit(1);
 }
 
+// 次のトークンが期待している記号の時には、トークンを一つ読み進めて真を返す
+// それ以外の場合は偽を返す
+bool consume(char op) {
+    if (token->kind == TK_RESERVED && token->str[0] == op) {
+        token = token->next;
+        return true;
+    }
+    return false;
+}
+
+// 次のトークンが期待している記号の時には、トークンを一つ読み進める
+// それ以外の場合はエラーを報告する
+void expect(char op) {
+    if (token->kind == TK_RESERVED && token->str[0] == op) {
+        token = token->next;
+    } else {
+        error("'%c'ではありません", op);
+    }
+}
+
 // 次のトークンが数値の場合、トークンを1つ読み進めてその数値を返す
 // それ以外の場合にはエラーを報告する
 int expect_number() {
@@ -43,8 +64,13 @@ int expect_number() {
     return val;
 }
 
+// 着目しているトークンが終わりか
+bool at_eof() {
+    return token->kind == TK_EOF;
+}
+
 // 新しいトークンを作成してcurに繋げる
-Token *new_token(Tokenkind kind, Token *cur, char *str) {
+Token *new_token(TokenKind kind, Token *cur, char *str) {
     Token *tok = calloc(1, sizeof(Token)); // 連結リストはどこまで増えるか分からないため、動的にメモリを確保する必要がある
     tok->kind = kind;
     tok->str = str;
@@ -100,21 +126,15 @@ int main(int argc, char **argv) {
     // 式の最初は数でなければならないので、それをチェックして最初のmov命令を出力
     printf("  mov rax, %d\n", expect_number());
 
-    while (*p) { // 文字列が終わるまで（文字列の最後はヌル文字が入りwhile文が終了する）
-        if (*p == '+') {
-            p++;
-            printf("  add rax, %ld\n", strtol(p, &p, 10));
+    // `+ <数>`あるいは`- <数>`というトークンの並びを消費しつつアセンブリを出力
+    while (!at_eof()) {
+        if (consume('+')) {
+            printf("  add rax, %d\n", expect_number());
             continue;
         }
 
-        if (*p == '-') {
-            p++;
-            printf("  sub rax, %ld\n", strtol(p, &p, 10));
-            continue;
-        }
-
-        fprintf(stderr, "予期しない文字です： '%c'\n", *p);
-        return 1;
+        expect('-');
+        printf("  sub rax, %d\n", expect_number());
     }
 
     printf("  ret\n");
