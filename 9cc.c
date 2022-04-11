@@ -4,6 +4,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+// 入力
+char *user_input;
+
 // トークンの種類
 typedef enum {
     TK_RESERVED, // 記号
@@ -32,6 +35,20 @@ void error(char *fmt, ...) { // 可変長引数
     exit(1);
 }
 
+// エラー箇所を報告する
+void error_at(char *loc, char *fmt, ...) { // 可変長引数
+    va_list ap;
+    va_start(ap, fmt); // ポインタapを、引数fmtの次の位置にする
+
+    int pos = loc - user_input; // エラー箇所の文字の位置を計算
+    fprintf(stderr, "%s\n", user_input); // 入力全体を出力
+    fprintf(stderr, "%*s", pos, " "); // pos個の空白を出力
+    fprintf(stderr, "^ ");
+    vfprintf(stderr, fmt, ap);
+    fprintf(stderr, "\n");
+    exit(1);
+}
+
 // 次のトークンが期待している記号の時には、トークンを一つ読み進めて真を返す
 // それ以外の場合は偽を返す
 bool consume(char op) {
@@ -48,7 +65,7 @@ void expect(char op) {
     if (token->kind == TK_RESERVED && token->str[0] == op) {
         token = token->next;
     } else {
-        error("'%c'ではありません", op);
+        error_at(token->str, "'%c'ではありません", op);
     }
 }
 
@@ -56,7 +73,7 @@ void expect(char op) {
 // それ以外の場合にはエラーを報告する
 int expect_number() {
     if (token->kind != TK_NUM) {
-        error("数ではありません");
+        error_at(token->str, "数ではありません");
     }
 
     int val = token->val;
@@ -102,7 +119,7 @@ Token *tokenize(char *p) {
             continue;
         }
 
-        error("トークナイズできません");
+        error_at(p, "トークナイズできません");
     }
 
     new_token(TK_EOF, cur, p);
@@ -115,8 +132,10 @@ int main(int argc, char **argv) {
         return 1;
     }
 
+    user_input = argv[1];
+
     // トークナイズする
-    token = tokenize(argv[1]); // tokenはグローバル変数に設定
+    token = tokenize(user_input); // tokenはグローバル変数に設定
 
     // アセンブリの前半部分を出力
     printf(".intel_syntax noprefix\n");
