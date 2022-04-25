@@ -83,6 +83,40 @@ Node *primary() {
     return new_node_num(expect_number());
 }
 
+// 抽象構文木をアセンブリにする関数
+void gen(Node *node) {
+    if (node->kind == ND_NUM) {
+        printf("  push %d\n", node->val);
+        return;
+    }
+
+    gen(node->lhs); // 左の部分木から数値をスタックにpushする
+    gen(node->rhs); // 右の部分木から数値をスタックにpushする
+
+    // スタックから数値2つをレジスタにpopする
+    printf("  pop rdi\n");
+    printf("  pop rax\n");
+
+    switch (node->kind) {
+        case ND_ADD:
+            printf("  add rax, rdi\n");
+            break;
+        case ND_SUB:
+            printf("  sub rax, rdi\n");
+            break;
+        case ND_MUL:
+            printf("  imul rax, rdi\n");
+            break;
+        case ND_DIV:
+            printf("  cqo\n");
+            printf("  idiv rdi\n");
+            break;
+    }
+
+    // 計算結果の値をスタックにpushする
+    printf("  push rax\n");
+}
+
 // トークンの種類
 typedef enum {
     TK_RESERVED, // 記号
