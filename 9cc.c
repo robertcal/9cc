@@ -247,24 +247,16 @@ int main(int argc, char **argv) {
     // トークナイズする
     token = tokenize(user_input); // tokenはグローバル変数に設定
 
+    // 抽象構文木にする
+    Node *node = expr();
+
     // アセンブリの前半部分を出力
     printf(".intel_syntax noprefix\n");
     printf(".global main\n");
     printf("main:\n");
 
-    // 式の最初は数でなければならないので、それをチェックして最初のmov命令を出力
-    printf("  mov rax, %d\n", expect_number());
-
-    // `+ <数>`あるいは`- <数>`というトークンの並びを消費しつつアセンブリを出力
-    while (!at_eof()) {
-        if (consume('+')) {
-            printf("  add rax, %d\n", expect_number());
-            continue;
-        }
-
-        expect('-');
-        printf("  sub rax, %d\n", expect_number());
-    }
+    // アセンブリを出力
+    gen(node);
 
     printf("  ret\n");
     return 0;
