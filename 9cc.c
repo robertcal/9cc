@@ -23,6 +23,7 @@ struct Token {
     Token *next; // 次の入力トークン（連結リスト構造）
     int val; // kindがTK_NUMの場合、その数値
     char *str; // トークン文字列
+    int len; // トークンの長さ
 };
 
 // 現在着目しているトークン
