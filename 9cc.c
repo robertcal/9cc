@@ -53,12 +53,16 @@ void error_at(char *loc, char *fmt, ...) { // 可変長引数
 
 // 次のトークンが期待している記号の時には、トークンを一つ読み進めて真を返す
 // それ以外の場合は偽を返す
-bool consume(char op) {
-    if (token->kind == TK_RESERVED && token->str[0] == op) {
-        token = token->next;
-        return true;
+bool consume(char *op) {
+    if (token->kind != TK_RESERVED || // 記号以外の場合
+        strlen(op) != token->len || // 期待する記号とトークンの長さが違う場合
+        memcmp(token->str, op, token->len)) // 第一引数と第二引数の先頭アドレスからlen分の文字を比較して違う場合
+    {
+        return false;
     }
-    return false;
+
+    token = token->next;
+    return true;
 }
 
 // 次のトークンが期待している記号の時には、トークンを一つ読み進める
