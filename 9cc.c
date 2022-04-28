@@ -67,11 +67,14 @@ bool consume(char *op) {
 
 // 次のトークンが期待している記号の時には、トークンを一つ読み進める
 // それ以外の場合はエラーを報告する
-void expect(char op) {
-    if (token->kind == TK_RESERVED && token->str[0] == op) {
-        token = token->next;
+void expect(char *op) {
+    if (token->kind != TK_RESERVED || // 記号以外の場合
+        strlen(op) != token->len || // 期待する記号とトークンの長さが違う場合
+        memcmp(token->str, op, token->len)) // 第一引数と第二引数の先頭アドレスからlen分の文字を比較して違う場合
+    {
+        error_at(token->str, "'%s'ではありません", op);
     } else {
-        error_at(token->str, "'%c'ではありません", op);
+        token = token->next;
     }
 }
 
