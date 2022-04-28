@@ -166,8 +166,10 @@ Node *new_node_num(int val) {
 // 関数のプロトタイプ宣言
 Node *expr();
 Node *mul();
+Node *unary();
 Node *primary();
 
+// expr = mul ("+" mul | "-" mul)*
 Node *expr() {
     Node *node = mul();
 
@@ -182,20 +184,33 @@ Node *expr() {
     }
 }
 
+// mul = unary ("*" unary | "/" unary)*
 Node *mul() {
-    Node *node = primary();
+    Node *node = unary();
 
     for (;;) {
         if (consume('*')) {
-            node = new_node(ND_MUL, node, primary());
+            node = new_node(ND_MUL, node, unary());
         } else if (consume('/')) {
-            node = new_node(ND_DIV, node, primary());
+            node = new_node(ND_DIV, node, unary());
         } else {
             return node;
         }
     }
 }
 
+// unary = ("+" | "-")? primary
+Node *unary() {
+    if (consume('+')) {
+        return primary();
+    } else if (consume('-')) {
+        return new_node(ND_SUB, new_node_num(0), primary()); // -xを0-xにしてしまう
+    } else {
+        return primary();
+    }
+}
+
+// primary = num | "(" expr ")"
 Node *primary() {
     // 次のトークンが"("なら、"(" expr ")"のはず
     if (consume('(')) {
