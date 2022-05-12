@@ -96,12 +96,18 @@ bool at_eof() {
 }
 
 // 新しいトークンを作成してcurに繋げる
-Token *new_token(TokenKind kind, Token *cur, char *str) {
+Token *new_token(TokenKind kind, Token *cur, char *str, int len) {
     Token *tok = calloc(1, sizeof(Token)); // 連結リストはどこまで増えるか分からないため、動的にメモリを確保する必要がある
     tok->kind = kind;
     tok->str = str;
+    tok->len = len;
     cur->next = tok;
     return tok;
+}
+
+// 文字列pの最初が文字列qであるか
+bool startswith(char *p, char *q) {
+    return memcmp(p, q, strlen(q)) == 0;
 }
 
 // 入力文字列pをトークナイズしてそれを返す
@@ -117,21 +123,30 @@ Token *tokenize(char *p) {
             continue;
         }
 
-        if (strchr("+-*/()", *p)) {
-            cur = new_token(TK_RESERVED, cur, p++); // new_tokenを実行した後に、p++でポインタを進める
+        // 先に2文字の記号から判定する
+        if (startswith(p, "==") || startswith(p, "!=") || startswith(p, "<=") || startswith(p, ">=")) {
+            cur = new_token(TK_RESERVED, cur, p, 2);
+            p += 2; // 2文字分進める
+            continue;
+        }
+
+        if (strchr("+-*/()<>", *p)) {
+            cur = new_token(TK_RESERVED, cur, p++, 1); // new_tokenを実行した後に、p++でポインタを進める
             continue;
         }
 
         if (isdigit(*p)) {
-            cur = new_token(TK_NUM, cur, p);
+            cur = new_token(TK_NUM, cur, p, 0);
+            char *q = p; // 文字列の最初のアドレスを保持
             cur->val = strtol(p, &p, 10); // 10進数でポインタから数値に変換できるところを変換して、ポインタを進める
+            cur->len = p - q; // 進んだアドレス分が文字数になる
             continue;
         }
 
         error_at(p, "トークナイズできません");
     }
 
-    new_token(TK_EOF, cur, p);
+    new_token(TK_EOF, cur, p, 0);
     return head.next;
 }
 
