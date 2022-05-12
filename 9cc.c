@@ -141,6 +141,13 @@ typedef enum {
     ND_SUB, // -
     ND_MUL, // *
     ND_DIV, // /
+    ND_EQ,  // ==
+    ND_NE,  // !=
+    ND_LT,  // <
+    ND_LE,  // <=
+    ND_RT,  // >
+    ND_RE,  // >=
+    ND_NUM, // 整数
     ND_NUM, // 整数
 } NodeKind;
 
@@ -173,18 +180,58 @@ Node *new_node_num(int val) {
 
 // 関数のプロトタイプ宣言
 Node *expr();
+Node *equality();
+Node *relational();
+Node *add();
 Node *mul();
 Node *unary();
 Node *primary();
 
-// expr = mul ("+" mul | "-" mul)*
-Node *expr() {
+// expr = equality
+Node *expr = equality();
+
+// equality = relational ("==" relational | "!=" relational)*
+Node *equality() {
+    Node *node = relational();
+
+    for (;;) { // 無限ループ
+        if (consume("==")) {
+            node = new_node(ND_EQ, node, equality());
+        } else if (consume("!=")) {
+            node = new_node(ND_NE, node, equality());
+        } else {
+            return node;
+        }
+    }
+}
+
+// relational = add ("<" add | "<=" add | ">" add | ">=" add)*
+Node *relational() {
+    Node *node = add();
+
+    for (;;) { // 無限ループ
+        if (consume("<")) {
+            node = new_node(ND_LT, node, add());
+        } else if (consume("<=")) {
+            node = new_node(ND_LE, node, add());
+        } else if (consume(">")) {
+            node = new_node(ND_RT, node, add());
+        } else if (consume(">=")) {
+            node = new_node(ND_RE, node, add());
+        } else {
+            return node;
+        }
+    }
+}
+
+// add = mul ("+" mul | "-" mul)*
+Node *add() {
     Node *node = mul();
 
     for (;;) { // 無限ループ
-        if (consume('+')) {
+        if (consume("+")) {
             node = new_node(ND_ADD, node, mul());
-        } else if (consume('-')) {
+        } else if (consume("-")) {
             node = new_node(ND_SUB, node, mul());
         } else {
             return node;
@@ -197,9 +244,9 @@ Node *mul() {
     Node *node = unary();
 
     for (;;) {
-        if (consume('*')) {
+        if (consume("*")) {
             node = new_node(ND_MUL, node, unary());
-        } else if (consume('/')) {
+        } else if (consume("/")) {
             node = new_node(ND_DIV, node, unary());
         } else {
             return node;
@@ -209,9 +256,9 @@ Node *mul() {
 
 // unary = ("+" | "-")? primary
 Node *unary() {
-    if (consume('+')) {
+    if (consume("+")) {
         return primary();
-    } else if (consume('-')) {
+    } else if (consume("-")) {
         return new_node(ND_SUB, new_node_num(0), primary()); // -xを0-xにしてしまう
     } else {
         return primary();
@@ -221,9 +268,9 @@ Node *unary() {
 // primary = num | "(" expr ")"
 Node *primary() {
     // 次のトークンが"("なら、"(" expr ")"のはず
-    if (consume('(')) {
+    if (consume("(")) {
         Node *node = expr();
-        expect(')');
+        expect(")");
         return node;
     }
 
