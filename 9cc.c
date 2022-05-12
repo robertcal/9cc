@@ -148,7 +148,6 @@ typedef enum {
     ND_RT,  // >
     ND_RE,  // >=
     ND_NUM, // 整数
-    ND_NUM, // 整数
 } NodeKind;
 
 typedef struct Node Node;
