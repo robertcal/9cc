@@ -160,8 +160,6 @@ typedef enum {
     ND_NE,  // !=
     ND_LT,  // <
     ND_LE,  // <=
-    ND_RT,  // >
-    ND_RE,  // >=
     ND_NUM, // 整数
 } NodeKind;
 
@@ -231,9 +229,9 @@ Node *relational() {
         } else if (consume("<=")) {
             node = new_node(ND_LE, node, add());
         } else if (consume(">")) {
-            node = new_node(ND_RT, node, add());
+            node = new_node(ND_LT, add(), node); // <と左右を逆にして対応
         } else if (consume(">=")) {
-            node = new_node(ND_RE, node, add());
+            node = new_node(ND_LE, add(), node); // <=と左右を逆にして対応
         } else {
             return node;
         }
@@ -330,6 +328,16 @@ void gen(Node *node) {
         case ND_NE:
             printf("  cmp rax, rdi\n"); // 2つを比較
             printf("  setne al\n"); // cmp命令の結果をalレジスタにセット
+            printf("  movzb rax, al\n"); // raxレジスタの上位56ビットをゼロクリア
+            break;
+        case ND_LT:
+            printf("  cmp rax, rdi\n"); // 2つを比較
+            printf("  setl al\n"); // cmp命令の結果をalレジスタにセット
+            printf("  movzb rax, al\n"); // raxレジスタの上位56ビットをゼロクリア
+            break;
+        case ND_LE:
+            printf("  cmp rax, rdi\n"); // 2つを比較
+            printf("  setle al\n"); // cmp命令の結果をalレジスタにセット
             printf("  movzb rax, al\n"); // raxレジスタの上位56ビットをゼロクリア
             break;
     }
