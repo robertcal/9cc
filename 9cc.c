@@ -202,7 +202,9 @@ Node *unary();
 Node *primary();
 
 // expr = equality
-Node *expr = equality();
+Node *expr() {
+    return equality();
+}
 
 // equality = relational ("==" relational | "!=" relational)*
 Node *equality() {
