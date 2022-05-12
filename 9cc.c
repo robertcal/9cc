@@ -322,6 +322,16 @@ void gen(Node *node) {
             printf("  cqo\n");
             printf("  idiv rdi\n");
             break;
+        case ND_EQ:
+            printf("  cmp rax, rdi\n"); // 2つを比較
+            printf("  sete al\n"); // cmp命令の結果をalレジスタにセット
+            printf("  movzb rax, al\n"); // raxレジスタの上位56ビットをゼロクリア
+            break;
+        case ND_NE:
+            printf("  cmp rax, rdi\n"); // 2つを比較
+            printf("  setne al\n"); // cmp命令の結果をalレジスタにセット
+            printf("  movzb rax, al\n"); // raxレジスタの上位56ビットをゼロクリア
+            break;
     }
 
     // 計算結果の値をスタックにpushする
